@@ -1,8 +1,8 @@
 package main
 
 import (
-	"entrance/api"
-	"entrance/database"
+	"github.com/ssenerg/entrance-sika/api"
+	"github.com/ssenerg/entrance-sika/database"
 	"log"
 	"fmt"
 )

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"entrance/database"
+	"github.com/ssenerg/entrance-sika/database"
 	"log"
 	"fmt"
 )

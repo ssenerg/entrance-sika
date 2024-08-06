@@ -1,7 +1,7 @@
 package api
 
 import (
-	"entrance/database"
+	"github.com/ssenerg/entrance-sika/database"
 	"log"
 
 	"github.com/labstack/echo/v4"

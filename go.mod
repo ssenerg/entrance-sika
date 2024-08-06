@@ -1,4 +1,4 @@
-module entrance
+module github.com/ssenerg/entrance-sika
 
 go 1.21.12
 
