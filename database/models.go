@@ -15,17 +15,17 @@ const writeConcurrent int = 10
 
 type Address struct {
 	gorm.Model
-	Street  string `json:"street"`
-	City    string `json:"city"`
-	State   string `json:"state"`
-	ZipCode string `json:"zip_code"`
-	Country string `json:"country"`
-	UserID  string `json:"user_id"` // Foreign key to associate with User
+	Street  string    `json:"street"`
+	City    string    `json:"city"`
+	State   string    `json:"state"`
+	ZipCode string    `json:"zip_code"`
+	Country string    `json:"country"`
+	UserID  uuid.UUID `json:"user_id"`
 }
 
 type User struct {
 	gorm.Model
-	ID          uuid.UUID `gorm:"type:uuid" json:"id"`
+	ID          uuid.UUID `gorm:"type:uuid;primary_key;" json:"id"`
 	Name        string    `json:"name"`
 	Email       string    `json:"email"`
 	PhoneNumber string    `json:"phone_number"`
@@ -49,10 +49,27 @@ func ReadUserFromJson(filename string) ([]User, error) {
 	return users, nil
 }
 
-func (db *Database) CreateUser(user User) {
-	if result := db.DB.Create(&user).Error; result != nil {
-		slog.Error("Error while creating user", "error", result, "user", user)
+func (db *Database) CreateUser(user User) error {
+	
+	if user.ID == uuid.Nil {
+		user.ID = uuid.New()
 	}
+	for i := range user.Addresses {
+		user.Addresses[i].UserID = user.ID
+	}
+	result := db.DB.Create(&user)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+
+func (db *Database) CreateAddress(address Address) error {
+	result := db.DB.Create(&address)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
 }
 
 func (db *Database) CreateUsers(users []User) {
@@ -66,7 +83,10 @@ func (db *Database) CreateUsers(users []User) {
 	}
 	go func(users <-chan User, wg *sync.WaitGroup) {
 		for user := range users {
-			db.CreateUser(user)
+			err := db.CreateUser(user)
+			if err != nil {
+				slog.Error("Error creating user", "error", err)
+			}
 			wg.Done()
 		}
 	}(ch, &wg)
@@ -74,10 +94,10 @@ func (db *Database) CreateUsers(users []User) {
 }
 
 func (db *Database) GetUserByID(id uuid.UUID) (User, error) {
-	var user User
-	result := db.DB.First(&user, "id = ?", id)
-	if result.Error != nil {
-		return user, result.Error
-	}
-	return user, nil
+    var user User
+    result := db.DB.Preload("Addresses").First(&user, "id = ?", id)
+    if result.Error != nil {
+        return user, result.Error
+    }
+    return user, nil
 }
