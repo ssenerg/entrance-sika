@@ -57,7 +57,7 @@ func (db *Database) CreateUser(user User) {
 
 func (db *Database) CreateUsers(users []User) {
 	ch := make(chan User, writeConcurrent)
-	var wg *sync.WaitGroup
+	var wg sync.WaitGroup
 	for _, user := range users {
 		wg.Add(1)
 		go func(user User) {
@@ -69,7 +69,7 @@ func (db *Database) CreateUsers(users []User) {
 			db.CreateUser(user)
 			wg.Done()
 		}
-	}(ch, wg)
+	}(ch, &wg)
 	wg.Wait()
 }
 

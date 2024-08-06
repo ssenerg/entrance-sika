@@ -55,6 +55,11 @@ func NewConfig(host, user, password, dbname, port, sslmode, timezone string, gor
 	} else if _, err := time.LoadLocation(timezone); err != nil {
 		return nil, err
 	}
+
+	if gormConfig == nil {
+		gormConfig = &gorm.Config{}
+	}
+	
 	return &Config{
 		host:       host,
 		user:       user,
